@@ -62,24 +62,6 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 		m_fields->currentMiddleground = -1;
 	}
 
-	void updateArtTriggersArray() {
-		m_fields->artTriggersArray->removeAllObjects();
-		resetCurrentArt();
-
-		for (auto obj : CCArrayExt(m_objects)) {
-			if (auto trigger = typeinfo_cast<ArtTriggerGameObject*>(obj)) {
-				m_fields->artTriggersArray->addObject(trigger);
-			}
-		}
-	}
-
-	bool init(GJGameLevel* level, bool noUI) {
-		if (!LevelEditorLayer::init(level, noUI)) return false;
-
-		updateArtTriggersArray();
-		return true;
-	}
-
 	void setArt(int triggerID, int art) {
 		switch (triggerID) {
 			case 3029:
@@ -97,8 +79,41 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 		}
 	}
 
+	void resetAllArt() {
+		setArt(3029, m_levelSettings->m_backgroundIndex);
+		setArt(3030, m_levelSettings->m_groundIndex);
+		setArt(3031, m_levelSettings->m_middleGroundIndex);
+	}
+
+	void updateArtTriggersArray() {
+
+		// exit if mod is diabled in settings
+		auto enabled = Mod::get()->getSettingValue<bool>("enabled");
+		if (enabled == false) {
+			resetAllArt();
+			return;
+		}
+
+		m_fields->artTriggersArray->removeAllObjects();
+		resetCurrentArt();
+
+		for (auto obj : CCArrayExt(m_objects)) {
+			if (auto trigger = typeinfo_cast<ArtTriggerGameObject*>(obj)) {
+				m_fields->artTriggersArray->addObject(trigger);
+			}
+		}
+	}
+
+	bool init(GJGameLevel* level, bool noUI) {
+		if (!LevelEditorLayer::init(level, noUI)) return false;
+
+		updateArtTriggersArray();
+		return true;
+	}
+
 	void updateEditor(float dt) {
 		LevelEditorLayer::updateEditor(dt);
+
 		fixGroundScale(); // fix RobTop's zoom bug on ground change
 
 		bool isPlaytesting = static_cast<int>(m_playbackMode) == 1;

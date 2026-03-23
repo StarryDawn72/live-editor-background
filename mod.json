@@ -10,12 +10,20 @@
 	"name": "Live Editor Background",
 	"version": "v1.1.0",
 	"developer": "StarryDawn72",
-	"description": "Auto update G, BG, and MG texture when passing the trigger in the editor outside of playtest.",
+	"description": "Sync editor G, BG, and MG automatically.",
 	"dependencies": {
 		"geode.node-ids": ">=v1.20.0"
 	},
 	"tags": ["editor", "enhancement"],
 	"links": {
 		"source": "https://github.com/StarryDawn72/live-editor-background"
+	},
+	"settings": {
+		"enabled": {
+			"type": "bool",
+			"name": "Enabled",
+			"description": "Enable this mod? This setting does not require a restart.",
+			"default": true
+		}
 	}
 }
