@@ -13,5 +13,6 @@
 	"description": "Auto update G, BG, and MG texture when passing the trigger in the editor outside of playtest.",
 	"dependencies": {
 		"geode.node-ids": ">=v1.20.0"
-	}
+	},
+	"tags": ["editor", "enhancement"]
 }
