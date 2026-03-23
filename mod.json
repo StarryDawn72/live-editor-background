@@ -8,7 +8,7 @@
 	},
 	"id": "starrydawn72.live-editor-background",
 	"name": "Live Editor Background",
-	"version": "v1.0.0",
+	"version": "v1.1.0",
 	"developer": "StarryDawn72",
 	"description": "Auto update G, BG, and MG texture when passing the trigger in the editor outside of playtest.",
 	"dependencies": {
