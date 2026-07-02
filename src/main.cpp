@@ -77,6 +77,7 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 				}
 				break;
 		}
+		if (!m_previewMode) updateEditorMode();
 	}
 
 	void resetAllArt() {
@@ -114,8 +115,6 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 	void updateEditor(float dt) {
 		LevelEditorLayer::updateEditor(dt);
 
-		fixGroundScale(); // fix RobTop's zoom bug on ground change
-
 		bool isPlaytesting = static_cast<int>(m_playbackMode) == 1;
 		if (isPlaytesting) return;
 		if (
@@ -129,6 +128,8 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 			setArt(3031, m_levelSettings->m_middleGroundIndex);
 			return;
 		}
+
+		fixGroundScale(); // fix RobTop's zoom bug on ground change
 
 		float largestBGTriggerX = -FLT_MAX, largestGTriggerX = -FLT_MAX, largestMGTriggerX = -FLT_MAX;
 		unsigned int newBackground = 0, newGround = 0, newMiddleground = 0;
@@ -261,5 +262,4 @@ class $modify(EditorPauseLayer) {
 			editor->updateArtTriggersArray();
 		}
 	}
-
 };
