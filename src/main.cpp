@@ -5,6 +5,12 @@
 
 using namespace geode::prelude;
 
+enum class ArtType {
+	Background = 3029,
+	Ground = 3030,
+	Middleground = 3031
+};
+
 class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 
 	struct Fields {
@@ -62,28 +68,46 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 		m_fields->currentMiddleground = -1;
 	}
 
-	void setArt(int triggerID, int art) {
+	void setArt(ArtType triggerID, int art) {
+
 		switch (triggerID) {
-			case 3029:
+			case ArtType::Background:
 				swapBackground(art);
 				break;
-			case 3030:
+			case ArtType::Ground:
 				swapGround(art);
 				break;
-			case 3031:
+			case ArtType::Middleground:
 				if (art != m_fields->currentMiddleground) {
 					swapMiddleground(art);
 					m_fields->currentMiddleground = art;
 				}
 				break;
 		}
-		if (!m_previewMode) updateEditorMode();
+
+		if (!m_previewMode) {
+			if (m_background) m_background->setColor(ccc3(166, 166, 166)); // real number real number
+			if (m_groundLayer) {
+				m_groundLayer->updateGround01Color(ccc3(166, 166, 166));
+				m_groundLayer->updateGround02Color(ccc3(166, 166, 166));
+				if (m_groundLayer->m_lineSprite) m_groundLayer->m_lineSprite->setColor(ccc3(125, 125, 125));
+			}
+			if (m_groundLayer2) {
+				m_groundLayer2->updateGround01Color(ccc3(166, 166, 166));
+				m_groundLayer2->updateGround02Color(ccc3(166, 166, 166));
+				if (m_groundLayer2->m_lineSprite) m_groundLayer2->m_lineSprite->setColor(ccc3(125, 125, 125));
+			}
+			if (m_middleground) {
+				m_middleground->updateGroundColor(ccc3(100, 100, 100), true);
+				m_middleground->updateGroundColor(ccc3(150, 150, 150), false);
+			}
+		}
 	}
 
 	void resetAllArt() {
-		setArt(3029, m_levelSettings->m_backgroundIndex);
-		setArt(3030, m_levelSettings->m_groundIndex);
-		setArt(3031, m_levelSettings->m_middleGroundIndex);
+		setArt(ArtType::Background, m_levelSettings->m_backgroundIndex);
+		setArt(ArtType::Ground, m_levelSettings->m_groundIndex);
+		setArt(ArtType::Middleground, m_levelSettings->m_middleGroundIndex);
 	}
 
 	void updateArtTriggersArray() {
@@ -123,9 +147,9 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 			m_objects->count() == 0 ||
 			m_fields->artTriggersArray->count() == 0
 		) {
-			setArt(3029, m_levelSettings->m_backgroundIndex);
-			setArt(3030, m_levelSettings->m_groundIndex);
-			setArt(3031, m_levelSettings->m_middleGroundIndex);
+			setArt(ArtType::Background, m_levelSettings->m_backgroundIndex);
+			setArt(ArtType::Ground, m_levelSettings->m_groundIndex);
+			setArt(ArtType::Middleground, m_levelSettings->m_middleGroundIndex);
 			return;
 		}
 
@@ -137,41 +161,41 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 
 		for (auto artTrigger : CCArrayExt<ArtTriggerGameObject>(m_fields->artTriggersArray)) {
 
-			switch(artTrigger->m_objectID) {
-				case 3029: // change background trigger
+			switch(static_cast<ArtType>(artTrigger->m_objectID)) {
+				case ArtType::Background:
 					updateArtTriggerType(artTrigger, largestBGTriggerX, newBackground, foundBackground);
 					break;
-				case 3030: // change ground trigger
+				case ArtType::Ground:
 					updateArtTriggerType(artTrigger, largestGTriggerX, newGround, foundGround);
 					break;		
-				case 3031: // change middleground trigger
+				case ArtType::Middleground:
 					updateArtTriggerType(artTrigger, largestMGTriggerX, newMiddleground, foundMiddleground);
 					break;	
 			}
 		}
 
-		if (!foundBackground) {
-			setArt(3029, m_levelSettings->m_backgroundIndex);
-		}
-		else setArt(3029, newBackground);
+		if (!foundBackground)
+			setArt(ArtType::Background, m_levelSettings->m_backgroundIndex);
+		else
+			setArt(ArtType::Background, newBackground);
 
-		if (!foundGround) {
-			setArt(3030, m_levelSettings->m_groundIndex);
-		}
-		else setArt(3030, newGround);
+		if (!foundGround)
+			setArt(ArtType::Ground, m_levelSettings->m_groundIndex);
+		else
+			setArt(ArtType::Ground, newGround);
 
-		if (!foundMiddleground) {
-			setArt(3031, m_levelSettings->m_middleGroundIndex);
-		}
-		else setArt(3031, newMiddleground);
+		if (!foundMiddleground)
+			setArt(ArtType::Middleground, m_levelSettings->m_middleGroundIndex);
+		else
+			setArt(ArtType::Middleground, newMiddleground);
 	}
 
 	GameObject* createObject(int key, CCPoint position, bool noUndo) {
 		GameObject* ret = LevelEditorLayer::createObject(key, position, noUndo);
 		if (
-			key == 3029 ||
-			key == 3030 ||
-			key == 3031
+			key == (int)ArtType::Background ||
+			key == (int)ArtType::Ground ||
+			key == (int)ArtType::Middleground
 		) updateArtTriggersArray();
 		return ret;
 	}
