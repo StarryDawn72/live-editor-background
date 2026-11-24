@@ -1,19 +1,16 @@
 {
-	"geode": "5.5.3",
+	"geode": "6.0.0",
 	"gd": {
-		"win": "2.2081",
-		"android": "2.2081",
-		"mac": "2.2081",
-		"ios": "2.2081"
+		"win": "2.2091",
+		"android": "2.2091",
+		"mac": "2.2091",
+		"ios": "2.2091"
 	},
 	"id": "starrydawn72.live-editor-background",
 	"name": "Live Editor Background",
-	"version": "v1.2.0",
+	"version": "v1.3.0",
 	"developer": "StarryDawn72",
 	"description": "Sync editor G, BG, and MG automatically.",
-	"dependencies": {
-		"geode.node-ids": ">=v1.20.0"
-	},
 	"tags": ["editor", "enhancement"],
 	"links": {
 		"source": "https://github.com/StarryDawn72/live-editor-background"

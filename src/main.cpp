@@ -11,11 +11,11 @@ enum class ArtType {
 	Middleground = 3031
 };
 
-class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
+class $modify(LevelEditorLayerHook, LevelEditorLayer) {
 
 	struct Fields {
-		Ref<CCArray> artTriggersArray = CCArray::create();
-		int currentMiddleground = -1;
+		Ref<CCArray> m_artTriggers = CCArray::create();
+		int m_currentMiddleground = -1;
 	};
 
 	void levelSettingsUpdated() {
@@ -65,7 +65,7 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 	}
 
 	void resetCurrentArt() {
-		m_fields->currentMiddleground = -1;
+		m_fields->m_currentMiddleground = -1;
 	}
 
 	void setArt(ArtType triggerID, int art) {
@@ -78,30 +78,14 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 				swapGround(art);
 				break;
 			case ArtType::Middleground:
-				if (art != m_fields->currentMiddleground) {
+				if (art != m_fields->m_currentMiddleground) {
 					swapMiddleground(art);
-					m_fields->currentMiddleground = art;
+					m_fields->m_currentMiddleground = art;
 				}
 				break;
 		}
 
-		if (!m_previewMode) {
-			if (m_background) m_background->setColor(ccc3(166, 166, 166)); // real number real number
-			if (m_groundLayer) {
-				m_groundLayer->updateGround01Color(ccc3(166, 166, 166));
-				m_groundLayer->updateGround02Color(ccc3(166, 166, 166));
-				if (m_groundLayer->m_lineSprite) m_groundLayer->m_lineSprite->setColor(ccc3(125, 125, 125));
-			}
-			if (m_groundLayer2) {
-				m_groundLayer2->updateGround01Color(ccc3(166, 166, 166));
-				m_groundLayer2->updateGround02Color(ccc3(166, 166, 166));
-				if (m_groundLayer2->m_lineSprite) m_groundLayer2->m_lineSprite->setColor(ccc3(125, 125, 125));
-			}
-			if (m_middleground) {
-				m_middleground->updateGroundColor(ccc3(100, 100, 100), true);
-				m_middleground->updateGroundColor(ccc3(150, 150, 150), false);
-			}
-		}
+		if (!m_previewMode) updateEditorMode();
 	}
 
 	void resetAllArt() {
@@ -110,7 +94,7 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 		setArt(ArtType::Middleground, m_levelSettings->m_middleGroundIndex);
 	}
 
-	void updateArtTriggersArray() {
+	void updateArtTriggers() {
 
 		// exit if mod is diabled in settings
 		auto enabled = Mod::get()->getSettingValue<bool>("enabled");
@@ -119,12 +103,12 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 			return;
 		}
 
-		m_fields->artTriggersArray->removeAllObjects();
+		m_fields->m_artTriggers->removeAllObjects();
 		resetCurrentArt();
 
 		for (auto obj : CCArrayExt(m_objects)) {
 			if (auto trigger = typeinfo_cast<ArtTriggerGameObject*>(obj)) {
-				m_fields->artTriggersArray->addObject(trigger);
+				m_fields->m_artTriggers->addObject(trigger);
 			}
 		}
 	}
@@ -132,7 +116,7 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 	bool init(GJGameLevel* level, bool noUI) {
 		if (!LevelEditorLayer::init(level, noUI)) return false;
 
-		updateArtTriggersArray();
+		updateArtTriggers();
 		return true;
 	}
 
@@ -142,10 +126,10 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 		bool isPlaytesting = static_cast<int>(m_playbackMode) == 1;
 		if (isPlaytesting) return;
 		if (
-			!m_fields->artTriggersArray ||
+			!m_fields->m_artTriggers ||
 			!m_objects ||
 			m_objects->count() == 0 ||
-			m_fields->artTriggersArray->count() == 0
+			m_fields->m_artTriggers->count() == 0
 		) {
 			setArt(ArtType::Background, m_levelSettings->m_backgroundIndex);
 			setArt(ArtType::Ground, m_levelSettings->m_groundIndex);
@@ -159,7 +143,7 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 		unsigned int newBackground = 0, newGround = 0, newMiddleground = 0;
 		bool foundBackground = false, foundGround = false, foundMiddleground = false;
 
-		for (auto artTrigger : CCArrayExt<ArtTriggerGameObject>(m_fields->artTriggersArray)) {
+		for (auto artTrigger : CCArrayExt<ArtTriggerGameObject>(m_fields->m_artTriggers)) {
 
 			switch(static_cast<ArtType>(artTrigger->m_objectID)) {
 				case ArtType::Background:
@@ -196,7 +180,7 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 			key == (int)ArtType::Background ||
 			key == (int)ArtType::Ground ||
 			key == (int)ArtType::Middleground
-		) updateArtTriggersArray();
+		) updateArtTriggers();
 		return ret;
 	}
 
@@ -225,11 +209,11 @@ class $modify(LEB_LevelEditorLayer, LevelEditorLayer) {
 };
 
 class $modify(EditorUI) {
-	CCArray* pasteObjects(gd::string str, bool withColor, bool noUndo) {
+	CCArray* pasteObjects(std::string str, bool withColor, bool noUndo) {
 		CCArray* ret = EditorUI::pasteObjects(str, withColor, noUndo);
 		
-		if (auto editor = static_cast<LEB_LevelEditorLayer*>(LEB_LevelEditorLayer::get())) {
-			editor->updateArtTriggersArray();
+		if (auto editor = static_cast<LevelEditorLayerHook*>(LevelEditorLayerHook::get())) {
+			editor->updateArtTriggers();
 		}
 		return ret;
 	}
@@ -237,24 +221,24 @@ class $modify(EditorUI) {
 	void onDeleteSelected(CCObject* sender) {
 		EditorUI::onDeleteSelected(sender);
 
-		if (auto editor = static_cast<LEB_LevelEditorLayer*>(LEB_LevelEditorLayer::get())) {
-			editor->updateArtTriggersArray();
+		if (auto editor = static_cast<LevelEditorLayerHook*>(LevelEditorLayerHook::get())) {
+			editor->updateArtTriggers();
 		}
 	}
 	
 	void undoLastAction(CCObject* object) {
 		EditorUI::undoLastAction(object);
 
-		if (auto editor = static_cast<LEB_LevelEditorLayer*>(LEB_LevelEditorLayer::get())) {
-			editor->updateArtTriggersArray();
+		if (auto editor = static_cast<LevelEditorLayerHook*>(LevelEditorLayerHook::get())) {
+			editor->updateArtTriggers();
 		}
 	}
 
 	void redoLastAction(CCObject* sender) {
 		EditorUI::redoLastAction(sender);
 
-		if (auto editor = static_cast<LEB_LevelEditorLayer*>(LEB_LevelEditorLayer::get())) {
-			editor->updateArtTriggersArray();
+		if (auto editor = static_cast<LevelEditorLayerHook*>(LevelEditorLayerHook::get())) {
+			editor->updateArtTriggers();
 		}
 	}
 
@@ -262,7 +246,7 @@ class $modify(EditorUI) {
 		
 		EditorUI::onStopPlaytest(sender);
 
-		if (auto editor = static_cast<LEB_LevelEditorLayer*>(LEB_LevelEditorLayer::get())) {
+		if (auto editor = static_cast<LevelEditorLayerHook*>(LevelEditorLayerHook::get())) {
 			editor->resetCurrentArt();
 		}		
 	}
@@ -271,7 +255,7 @@ class $modify(EditorUI) {
 		
 		EditorUI::playtestStopped();
 
-		if (auto editor = static_cast<LEB_LevelEditorLayer*>(LEB_LevelEditorLayer::get())) {
+		if (auto editor = static_cast<LevelEditorLayerHook*>(LevelEditorLayerHook::get())) {
 			editor->resetCurrentArt();
 		}
 	}
@@ -282,8 +266,8 @@ class $modify(EditorPauseLayer) {
 	void onResume(CCObject* sender) {
 		EditorPauseLayer::onResume(sender);
 
-		if (auto editor = static_cast<LEB_LevelEditorLayer*>(LEB_LevelEditorLayer::get())) {
-			editor->updateArtTriggersArray();
+		if (auto editor = static_cast<LevelEditorLayerHook*>(LevelEditorLayerHook::get())) {
+			editor->updateArtTriggers();
 		}
 	}
 };

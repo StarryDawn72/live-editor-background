@@ -1,4 +1,7 @@
 # Changelog
+## <cg>v1.3.0</c>
+- Upgrade to v6
+- 2.2091 support
 ## <cg>v1.2.0</c>
 - Fixed bugs related to preview mode
 ## <cg>v1.1.1</c>
